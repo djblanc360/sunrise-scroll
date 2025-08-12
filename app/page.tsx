@@ -1,84 +1,79 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { motion, useScroll, useTransform, useMotionValueEvent } from "motion/react"
 import { Header } from "@/components/header"
 
 
 export default function HomePage() {
-  const [scrollY, setScrollY] = useState(0)
+  // Use Framer Motion's useScroll hook for immediate scroll-linked animations
+  const { scrollYProgress } = useScroll()
+  
+  // Direct useTransform animations without spring delays
+  // Overlay opacity (fades from 1 to 0)
+  const overlayOpacity = useTransform(scrollYProgress, [0, 0.3], [1, 0])
 
-  useEffect(() => {
-    const handleScroll = () => setScrollY(window.scrollY)
-    window.addEventListener("scroll", handleScroll)
-    return () => window.removeEventListener("scroll", handleScroll)
-  }, [])
+  // Circle position (moves from 85.89% to -50%)
+  const circleY = useTransform(scrollYProgress, [0, 0.6], [85.89, -50])
 
-  const scrollProgress = Math.min(scrollY / 1500, 1)
+  // Subtitle opacity (increases as it comes into view)
+  const subtitleOpacity = useTransform(scrollYProgress, [0.2, 0.5], [0.6, 1])
 
-  // Calculate overlay opacity (fades from 1 to 0)
-  const overlayOpacity = Math.max(1 - scrollProgress * 1.2, 0)
+  // Mission section position - slides up after subtitle is visible
+  const missionY = useTransform(scrollYProgress, [0.5, 0.7, 0.9], [100, 0, -100])
+  
+  // Geometric lines opacity - fade out when mission comes into view
+  const linesOpacity = useTransform(scrollYProgress, [0.45, 0.55], [1, 0])
 
-  // Calculate circle position (moves from 85.89% to -50% with X offset)
-  const circleYStart = 85.89
-  const circleYEnd = -50
-  const circleY = circleYStart + (circleYEnd - circleYStart) * scrollProgress
-  // const circleXOffset = scrollProgress > 0.8 ? -22.05 : 0
+  // Circle gradient colors - SVG gradients need string values, so using state with useMotionValueEvent
+  const [topColor, setTopColor] = useState("rgba(228,228,221,1)")
+  const [bottomColor, setBottomColor] = useState("#E4E4DD")
 
-  // Calculate subtitle position (moves from 100.11% to 0%)
-  const subtitleYStart = 100.11
-  const subtitleY = subtitleYStart - subtitleYStart * scrollProgress
+  // Use useMotionValueEvent for motion value changes (immediate, no delay)
+  useMotionValueEvent(scrollYProgress, "change", (latest) => {
+    if (latest > 0.2) {
+      setTopColor(latest > 0.6 ? "#FA6147" : "rgba(244,136,115,1)")
+      setBottomColor(latest > 0.8 ? "#FA6147" : latest > 0.6 ? "rgba(239,161,144,1)" : "#E4E4DD")
+    } else {
+      setTopColor("rgba(228,228,221,1)")
+      setBottomColor("#E4E4DD")
+    }
+  })
 
-  // Calculate subtitle opacity (increases as it comes into view)
-  const subtitleOpacity = Math.min(0.6 + scrollProgress * 0.4, 1)
+  // Line positions using useTransform for smooth animation
+  const initialPositions = [
+    35550, 32691.1, 30044, 27593, 25323.6, 23222.2, 21276.5, 19474.9, 17806.8, 16262.3, 14832.1, 13507.9, 12281.8,
+    11146.5, 10095.3, 9121.96, 8220.73, 7386.25, 6613.59, 5898.16, 5235.73, 4622.36, 4054.43, 3528.57, 3041.66,
+    2590.82, 2173.38, 1786.85, 1428.96, 1097.58, 790.74, 506.64, 243.58, 0,
+  ]
 
-  // Calculate circle gradient colors based on scroll
-  let topColor = "rgba(228,228,221,1)"
-  let bottomColor = "#E4E4DD"
+  const finalPositions = [
+    7.7499, 7.1267, 6.5496, 6.0153, 5.5206, 5.0625, 4.6383, 4.2456, 3.8819, 3.5452, 3.2334, 2.9447, 2.6774, 2.4299,
+    2.2008, 1.9886, 1.7921, 1.6102, 1.4418, 1.2858, 1.1414, 1.0077, 0.8839, 0.7692, 0.6631, 0.5648, 0.4738, 0.3895,
+    0.3115, 0.2393, 0.1724, 0.1104, 0.0531, 0,
+  ]
 
-  if (scrollProgress > 0.2) {
-    topColor = scrollProgress > 0.6 ? "#FA6147" : "rgba(244,136,115,1)"
-    bottomColor = scrollProgress > 0.8 ? "#FA6147" : scrollProgress > 0.6 ? "rgba(239,161,144,1)" : "#E4E4DD"
-  }
+  // Create motion values for each line position with immediate response
+  const linePositions = initialPositions.map((initial, index) => {
+    const final = finalPositions[index]
+    return useTransform(scrollYProgress, [0, 0.6], [initial, final])
+  })
 
-  // Calculate line positions - they converge from spread out to clustered
-  const generateLinePositions = () => {
-    const initialPositions = [
-      35550, 32691.1, 30044, 27593, 25323.6, 23222.2, 21276.5, 19474.9, 17806.8, 16262.3, 14832.1, 13507.9, 12281.8,
-      11146.5, 10095.3, 9121.96, 8220.73, 7386.25, 6613.59, 5898.16, 5235.73, 4622.36, 4054.43, 3528.57, 3041.66,
-      2590.82, 2173.38, 1786.85, 1428.96, 1097.58, 790.74, 506.64, 243.58, 0,
-    ]
-
-    const finalPositions = [
-      7.7499, 7.1267, 6.5496, 6.0153, 5.5206, 5.0625, 4.6383, 4.2456, 3.8819, 3.5452, 3.2334, 2.9447, 2.6774, 2.4299,
-      2.2008, 1.9886, 1.7921, 1.6102, 1.4418, 1.2858, 1.1414, 1.0077, 0.8839, 0.7692, 0.6631, 0.5648, 0.4738, 0.3895,
-      0.3115, 0.2393, 0.1724, 0.1104, 0.0531, 0,
-    ]
-
-    return initialPositions.map((initial, index) => {
-      const final = finalPositions[index]
-      return initial + (final - initial) * scrollProgress
-    })
-  }
-
-  const linePositions = generateLinePositions()
-
-  // Calculate mission section position - should slide up into view and then slide away
-  const missionY = scrollProgress > 0.95 ? -100 : scrollProgress > 0.9 ? 91.56 : 100.02
+  // Mission timing: slides up at 50% scroll (after subtitle), visible until 70%, then slides away at 90%
 
   return (
     <div className="relative">
       {/* Header */}
       <Header />
       
-      {/* Pin spacer equivalent */}
-      <div className="relative" style={{ marginBottom: "1632px", height: "816px" }}>
-        {/* Hero wrap section - removed heroTransform, keeping it fixed in viewport */}
+      {/* Pin spacer equivalent - increased height for better subtitle spacing */}
+      <div className="relative" style={{ marginBottom: "2400px", height: "1200px" }}>
+        {/* Hero wrap section using motion components */}
         <section className="fixed inset-0 w-full h-screen overflow-hidden z-10">
-          <div
-            className="absolute inset-0 bg-gradient-to-b from-black to-gray-800"
+          <motion.div
+            className="absolute inset-0 bg-gradient-to-b from-black to-neutral-600"
             style={{
               opacity: overlayOpacity,
-              visibility: overlayOpacity > 0 ? "visible" : "hidden",
             }}
           />
 
@@ -92,11 +87,11 @@ export default function HomePage() {
             </div>
 
             {/* Logo */}
-            <div
+            <motion.div
               className="absolute left-1/2 w-[500px] h-[500px] pointer-events-none"
               style={{
-                transform: `translate3d(0px, ${circleY}%, 0px)`,
-                marginLeft: "-250px",
+                y: useTransform(circleY, (value) => `${value}%`),
+                x: "-50%",
               }}
             >
               <svg
@@ -119,15 +114,18 @@ export default function HomePage() {
                   fill="url(#logoGradient)"
                 />
               </svg>
-            </div>
+            </motion.div>
 
           </div>
           
           {/* Geometric Lines */}
-          <div className="absolute inset-0 pointer-events-none z-20 top-2/3">
+          <motion.div 
+            className="absolute inset-0 pointer-events-none z-20 top-2/3"
+            style={{ opacity: linesOpacity }}
+          >
             <div className="relative w-full h-full">
               {linePositions.map((position, index) => (
-                <svg
+                <motion.svg
                   key={index}
                   xmlns="http://www.w3.org/2000/svg"
                   width="100%"
@@ -136,40 +134,40 @@ export default function HomePage() {
                   preserveAspectRatio="none"
                   className="absolute w-full h-px"
                   style={{
-                    transform: `translate3d(0px, calc(50% + ${position}%), 0px)`,
+                    y: useTransform(position, (value) => `calc(50% + ${value}%)`),
                   }}
                 >
                   <rect width="100" height="1" fill="#0E0E08" />
-                </svg>
+                </motion.svg>
               ))}
 
-            {/* Subtitle */}
-            <div
-              className="absolute left-1/2 bottom-0 max-w-4xl px-6"
+            {/* Subtitle with increased spacing */}
+            {/* <motion.div
+              className="absolute left-1/2 bottom-0 max-w-4xl px-6 pb-20"
               style={{
-                transform: `translate(-50%, 0%) translate(0px, 0%)`,
+                x: "-50%",
               }}
             >
-              <h2
-                className="text-lg md:text-xl text-black leading-relaxed text-left"
+              <motion.h2
+                className="text-lg md:text-xl text-black leading-relaxed text-left mb-8"
                 style={{ opacity: subtitleOpacity }}
               >
                 <span className="text-orange-400">PiggyBanx is a new kind of collectible art company.</span> lorem ipsum piggybanx collaboratorium lorem ipsum piggybanx collaboratorium. Our{" "}
                 <span className="text-orange-400">intelligent, autonomous art cells</span> lorem ipsum piggybanx collaboratorium lorem ipsum piggybanx collaboratorium. and{" "}
                 <span className="text-orange-400">empower artists</span> lorem ipsum piggybanx collaboratorium lorem ipsum piggybanx collaboratorium.
-              </h2>
-            </div>
+              </motion.h2>
+            </motion.div> */}
             </div>
 
-          </div>
+          </motion.div>
 
         </section>
 
-      {/* Mission */}
-        <div
-          className="fixed inset-0 w-full h-screen bg-gray-900 text-white"
+        {/* Mission */}
+        <motion.div
+          className="fixed inset-0 w-full h-screen bg-neutral-800 text-white"
           style={{
-            transform: `translate3d(0px, ${missionY}%, 0px)`,
+            y: useTransform(missionY, (value) => `${value}%`),
             zIndex: 15,
           }}
         >
@@ -181,19 +179,15 @@ export default function HomePage() {
             </div>
 
             <div className="relative z-10 max-w-4xl mx-auto text-center">
-              <div className="text-sm uppercase tracking-wider text-orange-400 mb-4">Mission</div>
+              <em className="text-sm uppercase tracking-wider text-orange-400 mb-4">Mission</em>
               <h2 className="text-4xl md:text-6xl font-light leading-tight mb-8">
-                lorem ipsum piggybanx collaboratorium lorem ipsum piggybanx collaboratorium
+                Lorem Ipsum PiggyBanx Collaboratorium
               </h2>
               <div className="max-w-2xl mx-auto">
                 <p className="text-lg text-gray-300 leading-relaxed mb-8">
-                lorem ipsum piggybanx collaboratorium lorem ipsum piggybanx collaboratorium
-                lorem ipsum piggybanx collaboratorium lorem ipsum piggybanx collaboratorium
-                lorem ipsum piggybanx collaboratorium lorem ipsum piggybanx collaboratorium
-                lorem ipsum piggybanx collaboratorium lorem ipsum piggybanx collaboratorium
-                lorem ipsum piggybanx collaboratorium lorem ipsum piggybanx collaboratorium
-                lorem ipsum piggybanx collaboratorium lorem ipsum piggybanx collaboratorium
-                lorem ipsum piggybanx collaboratorium lorem ipsum piggybanx collaboratorium
+                <span className="text-orange-400">PiggyBanx is a new kind of collectible art company.</span> lorem ipsum piggybanx collaboratorium lorem ipsum piggybanx collaboratorium. Our{" "}
+                <span className="text-orange-400">intelligent, autonomous art cells</span> lorem ipsum piggybanx collaboratorium lorem ipsum piggybanx collaboratorium. and{" "}
+                <span className="text-orange-400">empower artists</span> lorem ipsum piggybanx collaboratorium lorem ipsum piggybanx collaboratorium.
                 </p>
                 <button className="border border-orange-400 text-orange-400 px-6 py-3 rounded hover:bg-orange-400 hover:text-white transition-colors">
                   Read more
@@ -201,11 +195,16 @@ export default function HomePage() {
               </div>
             </div>
           </div>
-        </div>
+        </motion.div>
       </div>
 
       {/* Additional content sections */}
-      <div className="relative z-30 bg-white min-h-screen">
+      <motion.div 
+      className="relative z-30 max-h-[50vh] bg-transparent"
+      // initial={{ background: "transparent" }}
+      // animate={{ background: "white" }}
+      // transition={{ duration: 0.5, ease: "easeInOut" }}
+      >
         <div className="max-w-4xl mx-auto px-6 py-20">
           <h3 className="text-3xl md:text-5xl font-light text-gray-900 text-center mb-8">
             PiggyBanx Lorem Ipsum
@@ -215,7 +214,7 @@ export default function HomePage() {
             lorem ipsum piggybanx collaboratorium lorem ipsum piggybanx collaboratorium
           </p>
         </div>
-      </div>
+      </motion.div>
     </div>
   )
 }
