@@ -18,8 +18,11 @@ export default function HomePage() {
   // Subtitle opacity (increases as it comes into view)
   const subtitleOpacity = useTransform(scrollYProgress, [0.2, 0.5], [0.6, 1])
 
-  // Mission section position - slides up after subtitle is visible
-  const missionY = useTransform(scrollYProgress, [0.5, 0.7, 0.9], [100, 0, -100])
+  // Mission section position - slides up and stays visible
+  const missionY = useTransform(scrollYProgress, [0.5, 0.7], [100, 0])
+  
+  // Mission 2 section position - slides up after mission is static
+  const mission2Y = useTransform(scrollYProgress, [0.8, 1.0], [100, 0])
   
   // Geometric lines opacity - fade out when mission comes into view
   const linesOpacity = useTransform(scrollYProgress, [0.45, 0.55], [1, 0])
@@ -204,34 +207,93 @@ export default function HomePage() {
           }}
         >
           <div className="relative h-full flex items-center justify-center px-6">
-            <div className="absolute inset-0 flex items-center justify-center opacity-10">
+            <motion.div 
+              className="absolute inset-0 flex items-center justify-center opacity-10"
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              transition={{ duration: 1.2, delay: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+            >
               <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" fill="none" className="w-96 h-96">
                 <path d="M 150,10 A 140,140 0 1,1 149.99,10" stroke="#E5E5DF" strokeWidth="1" fill="none" />
               </svg>
-            </div>
+            </motion.div>
 
             <div className="relative z-10 max-w-4xl mx-auto text-center">
               <em className="text-sm uppercase tracking-wider text-orange-400 mb-4">Mission</em>
-              <h2 className="text-4xl md:text-6xl font-light leading-tight mb-8">
+              <motion.h2 className="text-4xl md:text-6xl font-light leading-tight mb-8"
+                initial={{ opacity: 0, y: 100 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 1.2, delay: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+              >
                 Lorem Ipsum PiggyBanx Collaboratorium
-              </h2>
+              </motion.h2>
               <div className="max-w-2xl mx-auto">
-                <p className="text-lg text-gray-900 leading-relaxed mb-8">
+                <motion.p className="text-lg text-gray-900 leading-relaxed mb-8"
+                  initial={{ opacity: 0, y: 50 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 1, delay: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
+                >
                 <span className="text-orange-400">PiggyBanx is a new kind of collectible art company.</span> lorem ipsum piggybanx collaboratorium lorem ipsum piggybanx collaboratorium. Our{" "}
                 <span className="text-orange-400">intelligent, autonomous art cells</span> lorem ipsum piggybanx collaboratorium lorem ipsum piggybanx collaboratorium. and{" "}
                 <span className="text-orange-400">empower artists</span> lorem ipsum piggybanx collaboratorium lorem ipsum piggybanx collaboratorium.
-                </p>
-                <button className="border border-orange-400 text-orange-400 px-6 py-3 rounded hover:bg-orange-400 hover:text-white transition-colors">
+                </motion.p>
+                <motion.button className="border border-orange-400 text-orange-400 px-6 py-3 rounded hover:bg-orange-400 hover:text-white transition-colors"
+                  initial={{ opacity: 0, y: 50 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 1, delay: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
+                >
                   Read more
-                </button>
+                </motion.button>
               </div>
+            </div>
+          </div>
+        </motion.div>
+
+        {/* Mission 2 */}
+        <motion.div 
+          className="fixed inset-0 w-full h-screen bg-gradient-to-b from-slate-900 to-black text-white"
+          style={{
+            y: useTransform(mission2Y, (value) => `${value}%`),
+            zIndex: 25,
+          }}
+        >
+          <div className="relative h-full flex items-center justify-center px-6">
+            <div className="container mx-auto text-center max-w-5xl">
+              <motion.h3 
+                className="text-4xl md:text-6xl lg:text-7xl font-light text-center mb-8"
+                initial={{ opacity: 0, y: 100 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 1.2, delay: 0.3, ease: [0.25, 0.46, 0.45, 0.94] }}
+              >
+                PiggyBanx Lorem Ipsum
+              </motion.h3>
+              
+              <motion.p 
+                className="text-xl md:text-2xl leading-relaxed opacity-90 font-light max-w-3xl mx-auto mb-16"
+                initial={{ opacity: 0, y: 50 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 1, delay: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
+              >
+                lorem ipsum piggybanx collaboratorium lorem ipsum piggybanx collaboratorium 
+                lorem ipsum piggybanx collaboratorium lorem ipsum piggybanx collaboratorium
+              </motion.p>
+
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.8, delay: 0.9 }}
+              >
+                <button className="bg-white/10 backdrop-blur-md border border-white/20 text-white px-12 py-5 rounded-full text-lg font-medium hover:bg-white/20 transition-all duration-500 transform hover:scale-110 hover:shadow-2xl">
+                  Explore Further
+                </button>
+              </motion.div>
             </div>
           </div>
         </motion.div>
       </div>
 
       {/* Additional content sections */}
-      <motion.div 
+      {/* <motion.div 
       className="relative z-30 max-h- bg-transparent"
       // initial={{ background: "transparent" }}
       // animate={{ background: "white" }}
@@ -246,7 +308,7 @@ export default function HomePage() {
             lorem ipsum piggybanx collaboratorium lorem ipsum piggybanx collaboratorium
           </p>
         </div>
-      </motion.div>
+      </motion.div> */}
     </div>
   )
 }
