@@ -9,12 +9,11 @@ export default function HomePage() {
   // Use Framer Motion's useScroll hook for immediate scroll-linked animations
   const { scrollYProgress } = useScroll()
   
-  // Direct useTransform animations without spring delays
   // Overlay opacity (fades from 1 to 0)
-  const overlayOpacity = useTransform(scrollYProgress, [0, 0.3], [1, 0])
+  const overlayOpacity = useTransform(scrollYProgress, [0, 0.2], [0, 1])
 
-  // Circle position (moves from 85.89% to -50%)
-  const circleY = useTransform(scrollYProgress, [0, 0.6], [85.89, -50])
+  // Logo position (moves from 85.89% to -50%)
+  const logoY = useTransform(scrollYProgress, [0, 0.6], [85.89, -50])
 
   // Subtitle opacity (increases as it comes into view)
   const subtitleOpacity = useTransform(scrollYProgress, [0.2, 0.5], [0.6, 1])
@@ -25,18 +24,25 @@ export default function HomePage() {
   // Geometric lines opacity - fade out when mission comes into view
   const linesOpacity = useTransform(scrollYProgress, [0.45, 0.55], [1, 0])
 
-  // Circle gradient colors - SVG gradients need string values, so using state with useMotionValueEvent
-  const [topColor, setTopColor] = useState("rgba(228,228,221,1)")
-  const [bottomColor, setBottomColor] = useState("#E4E4DD")
+  // Logo gradient colors - SVG gradients need string values, so using state with useMotionValueEvent
+  const [topColor, setTopColor] = useState("rgba(0,0,0,1)")
+  const [bottomColor, setBottomColor] = useState("rgba(0,0,0,1)")
+  
+  // Geometric lines color - transitions from black to white
+  const [linesColor, setLinesColor] = useState("#FFFFFF")
 
   // Use useMotionValueEvent for motion value changes (immediate, no delay)
   useMotionValueEvent(scrollYProgress, "change", (latest) => {
-    if (latest > 0.2) {
-      setTopColor(latest > 0.6 ? "#FA6147" : "rgba(244,136,115,1)")
-      setBottomColor(latest > 0.8 ? "#FA6147" : latest > 0.6 ? "rgba(239,161,144,1)" : "#E4E4DD")
+    // Logo transitions to lighter colors as background gets darker (0-0.2 scroll range)
+    if (latest > 0.1) {
+      // Transition from dark to light - matches overlay darkening (0-20% scroll)
+      setTopColor(latest > 0.2 ? "#FFFFFF" : latest > 0.15 ? "#F0F0F0" : "#e0dede")
+      setBottomColor(latest > 0.4 ? "#FFFFFF" : latest > 0.3 ? "#e0dede" : "#212121")
     } else {
-      setTopColor("rgba(228,228,221,1)")
-      setBottomColor("#E4E4DD")
+      // Initial state - dark colors when background is light
+      setTopColor("#212121")
+      setBottomColor("rgba(0,0,0,1)")
+      setLinesColor("rgba(250,250,250,0.9)")
     }
   })
 
@@ -71,7 +77,7 @@ export default function HomePage() {
         {/* Hero wrap section using motion components */}
         <section className="fixed inset-0 w-full h-screen overflow-hidden z-10">
           <motion.div
-            className="absolute inset-0 bg-gradient-to-b from-black to-neutral-600"
+            className="absolute inset-0 bg-gradient-to-b from-black from-40% via-[#171718] via-60% to-[#2d2d30] to-100%"
             style={{
               opacity: overlayOpacity,
             }}
@@ -81,50 +87,50 @@ export default function HomePage() {
           <div className="relative z-10 h-full flex flex-col items-center justify-center px-6">
             {/* Title */}
             <div className="flex justify-start w-full margin-auto mb-8 pl-8 md:pl-20 lg:pl-40">
-              <h1 className="text-3xl md:text-5xl lg:text-6xl font-light leading-tight text-white text-right max-w-3xl">
+              <h1 className="text-3xl md:text-5xl lg:text-6xl font-light leading-tight text-black text-right max-w-3xl">
                 Community Driven<br />Collectible Art
               </h1>
             </div>
-
-            {/* Logo */}
-            <motion.div
-              className="absolute left-1/2 w-[500px] h-[500px] pointer-events-none"
-              style={{
-                y: useTransform(circleY, (value) => `${value}%`),
-                x: "-50%",
-              }}
-            >
-              <svg
-                id="Layer_1"
-                xmlns="http://www.w3.org/2000/svg"
-                version="1.1"
-                width="500"
-                height="500"
-                viewBox="0 0 360 360"
-                className="w-full h-full"
-              >
-                <defs>
-                  <linearGradient id="logoGradient" x1="0" x2="0" y1="0" y2="1">
-                    <stop offset="0%" stopColor={topColor} />
-                    <stop offset="100%" stopColor={bottomColor} />
-                  </linearGradient>
-                </defs>
-                <path
-                  d="M174.1,229.96c-5.29,0-10.41-.04-15.54,0-10.76.1-21.53.23-32.29.38-3.67.05-7.33.14-10.9-.98-6.13-1.94-10.14-7.39-9.87-13.61.15-3.38,1.78-6.15,4.1-8.44,2.45-2.42,5.13-4.62,7.72-6.9,7-6.19,13.99-12.39,20.99-18.58,11.5-10.17,23-20.33,34.49-30.49,6.05-5.35,12.07-10.73,18.14-16.05,3.06-2.68,6.31-5.16,9.3-7.92,3.03-2.79,5.81-5.88,7.41-9.74,1.88-4.53,2.3-9.31,1.38-14.13-2.14-11.37-8.67-19.28-19.46-23.26-16.09-5.93-33.99,4.18-37.86,20.91-2.89,12.46,3.03,26.5,15.38,33,2.57,1.35,5.26,2.28,8.13,2.67.13.02.26.08.58.18-11.38,9.83-22.65,19.56-33.94,29.3-5.67-3.58-10.72-7.81-15.11-12.82-8.72-9.94-14.12-21.5-15.91-34.55-3.16-23,3.15-43.13,19.36-59.88,9.11-9.41,20.21-15.57,32.95-18.67,12.29-2.99,24.47-2.35,36.64.98,5.35,1.46,10.35,3.55,15.08,6.36,1.99,1.18,3.87,2.55,5.76,3.88.53.38.92.39,1.47.07,8.74-5.1,18.51-4.26,25.8,2.75,6.16,5.93,8.01,13.3,5.59,21.59-1.22,4.16-3.61,7.55-6.98,10.29-.35.29-.58,1.02-.51,1.5.55,3.88,1.26,7.74,1.79,11.62.85,6.29,1.01,12.61.26,18.93-.75,6.32-2.35,12.41-5.03,18.2-3.78,8.18-9.11,15.2-15.95,21.04-13.08,11.17-26.2,22.29-39.31,33.43-1.08.92-2.17,1.82-3.55,2.96.71,0,1.11,0,1.5,0,10.54-.04,21.09-.15,31.63-.11,4.43.02,8.88.13,13.27.6,6.23.67,11.41,3.51,15.18,8.63,4.05,5.5,3.76,12.79-.68,18.4-3.51,4.43-7.85,7.97-12.31,11.36-9.54,7.27-19.12,14.5-28.7,21.72-10.54,7.94-21.11,15.84-31.65,23.78-14.78,11.13-29.55,22.29-44.33,33.43-4.35,3.28-8.72,6.55-13.24,9.7,19.73-30.51,39.47-61.02,59.22-91.56Z"
-                  fill="url(#logoGradient)"
-                />
-              </svg>
-            </motion.div>
-
           </div>
+
+          {/* Logo - positioned between background and foreground lines */}
+          <motion.div
+            className="absolute left-1/2 top-1/2 w-[500px] h-[500px] pointer-events-none"
+            style={{
+              y: useTransform(logoY, (value) => `calc(-50% + ${value}%)`),
+              x: "-50%",
+              zIndex: 20,
+            }}
+          >
+            <svg
+              id="Layer_1"
+              xmlns="http://www.w3.org/2000/svg"
+              version="1.1"
+              width="500"
+              height="500"
+              viewBox="0 0 360 360"
+              className="w-full h-full"
+            >
+              <defs>
+                <linearGradient id="logoGradient" x1="0" x2="0" y1="0" y2="1">
+                  <stop offset="0%" stopColor={topColor} />
+                  <stop offset="100%" stopColor={bottomColor} />
+                </linearGradient>
+              </defs>
+              <path
+                d="M174.1,229.96c-5.29,0-10.41-.04-15.54,0-10.76.1-21.53.23-32.29.38-3.67.05-7.33.14-10.9-.98-6.13-1.94-10.14-7.39-9.87-13.61.15-3.38,1.78-6.15,4.1-8.44,2.45-2.42,5.13-4.62,7.72-6.9,7-6.19,13.99-12.39,20.99-18.58,11.5-10.17,23-20.33,34.49-30.49,6.05-5.35,12.07-10.73,18.14-16.05,3.06-2.68,6.31-5.16,9.3-7.92,3.03-2.79,5.81-5.88,7.41-9.74,1.88-4.53,2.3-9.31,1.38-14.13-2.14-11.37-8.67-19.28-19.46-23.26-16.09-5.93-33.99,4.18-37.86,20.91-2.89,12.46,3.03,26.5,15.38,33,2.57,1.35,5.26,2.28,8.13,2.67.13.02.26.08.58.18-11.38,9.83-22.65,19.56-33.94,29.3-5.67-3.58-10.72-7.81-15.11-12.82-8.72-9.94-14.12-21.5-15.91-34.55-3.16-23,3.15-43.13,19.36-59.88,9.11-9.41,20.21-15.57,32.95-18.67,12.29-2.99,24.47-2.35,36.64.98,5.35,1.46,10.35,3.55,15.08,6.36,1.99,1.18,3.87,2.55,5.76,3.88.53.38.92.39,1.47.07,8.74-5.1,18.51-4.26,25.8,2.75,6.16,5.93,8.01,13.3,5.59,21.59-1.22,4.16-3.61,7.55-6.98,10.29-.35.29-.58,1.02-.51,1.5.55,3.88,1.26,7.74,1.79,11.62.85,6.29,1.01,12.61.26,18.93-.75,6.32-2.35,12.41-5.03,18.2-3.78,8.18-9.11,15.2-15.95,21.04-13.08,11.17-26.2,22.29-39.31,33.43-1.08.92-2.17,1.82-3.55,2.96.71,0,1.11,0,1.5,0,10.54-.04,21.09-.15,31.63-.11,4.43.02,8.88.13,13.27.6,6.23.67,11.41,3.51,15.18,8.63,4.05,5.5,3.76,12.79-.68,18.4-3.51,4.43-7.85,7.97-12.31,11.36-9.54,7.27-19.12,14.5-28.7,21.72-10.54,7.94-21.11,15.84-31.65,23.78-14.78,11.13-29.55,22.29-44.33,33.43-4.35,3.28-8.72,6.55-13.24,9.7,19.73-30.51,39.47-61.02,59.22-91.56Z"
+                fill="url(#logoGradient)"
+              />
+            </svg>
+          </motion.div>
           
-          {/* Geometric Lines */}
+          {/* Background Geometric Lines (behind logo) */}
           <motion.div 
-            className="absolute inset-0 pointer-events-none z-20 top-2/3"
-            style={{ opacity: linesOpacity }}
+            className="absolute inset-0 pointer-events-none top-2/3"
+            style={{ opacity: linesOpacity, zIndex: 25 }}
           >
             <div className="relative w-full h-full">
-              {linePositions.map((position, index) => (
+              {linePositions.slice(0, 20).map((position, index) => (
                 <motion.svg
                   key={index}
                   xmlns="http://www.w3.org/2000/svg"
@@ -137,7 +143,33 @@ export default function HomePage() {
                     y: useTransform(position, (value) => `calc(50% + ${value}%)`),
                   }}
                 >
-                  <rect width="100" height="1" fill="#0E0E08" />
+                  <rect width="100" height="1" fill={linesColor} />
+                </motion.svg>
+              ))}
+            </div>
+          </motion.div>
+
+          {/* Foreground Geometric Lines (in front of logo) */}
+          <motion.div 
+            className="absolute inset-0 pointer-events-none top-2/3 bg-[#2d2d30]"
+            exit={{ background: "black" }}
+            style={{ opacity: linesOpacity, zIndex: 15 }}
+          >
+            <div className="relative w-full h-full">
+              {linePositions.slice(20).map((position, index) => (
+                <motion.svg
+                  key={index + 20}
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="100%"
+                  viewBox="0 0 100 1"
+                  fill="none"
+                  preserveAspectRatio="none"
+                  className="absolute w-full h-px"
+                  style={{
+                    y: useTransform(position, (value) => `calc(50% + ${value}%)`),
+                  }}
+                >
+                  <rect width="100" height="1" fill={linesColor} />
                 </motion.svg>
               ))}
 
@@ -165,7 +197,7 @@ export default function HomePage() {
 
         {/* Mission */}
         <motion.div
-          className="fixed inset-0 w-full h-screen bg-neutral-800 text-white"
+          className="fixed inset-0 w-full h-screen bg-neutral-200 text-black"
           style={{
             y: useTransform(missionY, (value) => `${value}%`),
             zIndex: 15,
@@ -184,7 +216,7 @@ export default function HomePage() {
                 Lorem Ipsum PiggyBanx Collaboratorium
               </h2>
               <div className="max-w-2xl mx-auto">
-                <p className="text-lg text-gray-300 leading-relaxed mb-8">
+                <p className="text-lg text-gray-900 leading-relaxed mb-8">
                 <span className="text-orange-400">PiggyBanx is a new kind of collectible art company.</span> lorem ipsum piggybanx collaboratorium lorem ipsum piggybanx collaboratorium. Our{" "}
                 <span className="text-orange-400">intelligent, autonomous art cells</span> lorem ipsum piggybanx collaboratorium lorem ipsum piggybanx collaboratorium. and{" "}
                 <span className="text-orange-400">empower artists</span> lorem ipsum piggybanx collaboratorium lorem ipsum piggybanx collaboratorium.
@@ -200,16 +232,16 @@ export default function HomePage() {
 
       {/* Additional content sections */}
       <motion.div 
-      className="relative z-30 max-h-[50vh] bg-transparent"
+      className="relative z-30 max-h- bg-transparent"
       // initial={{ background: "transparent" }}
       // animate={{ background: "white" }}
       // transition={{ duration: 0.5, ease: "easeInOut" }}
       >
         <div className="max-w-4xl mx-auto px-6 py-20">
-          <h3 className="text-3xl md:text-5xl font-light text-gray-900 text-center mb-8">
+          <h3 className="text-3xl md:text-5xl font-light text-neutral-200 text-center mb-8">
             PiggyBanx Lorem Ipsum
           </h3>
-          <p className="text-lg text-gray-600 leading-relaxed text-center max-w-2xl mx-auto">
+          <p className="text-lg text-neutral-200 leading-relaxed text-center max-w-2xl mx-auto">
             lorem ipsum piggybanx collaboratorium lorem ipsum piggybanx collaboratorium 
             lorem ipsum piggybanx collaboratorium lorem ipsum piggybanx collaboratorium
           </p>
